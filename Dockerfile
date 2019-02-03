@@ -14,3 +14,22 @@ RUN mkdir /var/www/moodledata && chown www-data /var/www/moodledata && \
     mkdir /var/www/phpunitdata && chown www-data /var/www/phpunitdata && \
     mkdir /var/www/behatdata && chown www-data /var/www/behatdata && \
     mkdir /var/www/behatfaildumps && chown www-data /var/www/behatfaildumps
+
+#    && add-apt-repository "deb [arch=amd64] http://deb.debian.org/debian \
+#       $(lsb_release -cs) universe" \
+
+RUN apt-get update && apt-get -y dist-upgrade \
+    && apt-get update \
+    && apt-get install -y lsb-release apt-utils software-properties-common \
+    && apt-get install -y supervisor cron
+    
+COPY launch /launch
+RUN chmod +x /launch/entrypoint.sh
+
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
+
+ENTRYPOINT ["/tini", "-s", "--"]
+CMD ["/bin/bash", "-c", "/launch/entrypoint.sh"] 
